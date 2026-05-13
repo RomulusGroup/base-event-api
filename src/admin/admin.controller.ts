@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFile, UseGuards, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { EventsService } from '../events/events.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -62,9 +62,48 @@ export class AdminController {
     });
   }
 
+  @Get('events/:id')
+  @ApiOperation({ summary: 'Get a specific event' })
+  async getEvent(@Param('id') id: string) {
+    return this.eventsService.getEventById(id);
+  }
+
+  @Post('events/:id')
+  @UseInterceptors(FileInterceptor('flyer'))
+  @ApiOperation({ summary: 'Update an existing event' })
+  @ApiConsumes('multipart/form-data')
+  async updateEvent(
+    @Param('id') id: string,
+    @Body() eventData: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    let flyerUrl = eventData.flyerUrl;
+    
+    if (file) {
+      flyerUrl = await this.storageService.uploadFlyer(file);
+    }
+    
+    return this.eventsService.updateEvent(id, {
+      ...eventData,
+      flyerUrl,
+    });
+  }
+
+  @Delete('events/:id')
+  @ApiOperation({ summary: 'Delete an event' })
+  async deleteEvent(@Param('id') id: string) {
+    return this.eventsService.deleteEvent(id);
+  }
+
   @Get('events/:id/attendees')
   @ApiOperation({ summary: 'Get attendee list for a specific event' })
   async getAttendees(@Param('id') id: string) {
     return this.eventsService.getEventAttendees(id);
+  }
+
+  @Delete('attendees/:id')
+  @ApiOperation({ summary: 'Remove an attendee' })
+  async deleteAttendee(@Param('id') id: string) {
+    return this.eventsService.deleteAttendee(id);
   }
 }

@@ -31,6 +31,29 @@ export class EventsService {
     });
   }
 
+  async getEventById(id: string) {
+    return this.eventRepository.findOne({
+      where: { id },
+      relations: ['attendees'],
+    });
+  }
+
+  async updateEvent(id: string, eventData: any) {
+    await this.eventRepository.update(id, {
+      ...eventData,
+      date: eventData.date ? new Date(eventData.date) : undefined,
+    });
+    return this.getEventById(id);
+  }
+
+  async deleteEvent(id: string) {
+    return this.eventRepository.delete(id);
+  }
+
+  async deleteAttendee(attendeeId: string) {
+    return this.attendeeRepository.delete(attendeeId);
+  }
+
   async getDashboardStats() {
     const totalEvents = await this.eventRepository.count();
     const totalAttendees = await this.attendeeRepository.count();
