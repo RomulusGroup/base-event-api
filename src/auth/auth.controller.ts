@@ -22,4 +22,11 @@ export class AuthController {
   async refresh(@Body() body: any) {
     return this.authService.refreshToken(body.refresh_token);
   }
+
+  @Post('logout')
+  @ApiOperation({ summary: 'Admin logout' })
+  @ApiResponse({ status: 200, description: 'Logout successful.' })
+  async logout() {
+    return { message: 'Logged out successfully' };
+  }
 }

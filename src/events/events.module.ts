@@ -6,12 +6,14 @@ import { StorageService } from './storage.service';
 import { AdminController } from '../admin/admin.controller';
 import { Attendee } from '../rsvp/entities/attendee.entity';
 
+import { EventsController } from './events.controller';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Event, Attendee]),
   ],
   providers: [EventsService, StorageService],
-  controllers: [AdminController],
+  controllers: [AdminController, EventsController],
   exports: [EventsService, TypeOrmModule, StorageService],
 })
 export class EventsModule {}
