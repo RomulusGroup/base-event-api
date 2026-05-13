@@ -30,6 +30,11 @@ export class CreateRsvpDto {
   @IsOptional()
   bringingPlusOne: boolean = false;
 
+  @ApiPropertyOptional({ example: 1, description: 'Number of guests' })
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  guestCount: number = 0;
+
   @ApiPropertyOptional({ example: 'Jane Doe', description: 'Plus one name' })
   @ValidateIf((o) => o.bringingPlusOne === true)
   @IsString()
