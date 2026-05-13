@@ -30,6 +30,10 @@ export class EmailProcessor extends WorkerHost {
           guestNarrative = `<p style="font-size: 14px; color: #c5a059; margin-top: 5px; font-style: italic;">+ Access for ${guestCount} Guest${guestCount > 1 ? 's' : ''}</p>`;
         }
 
+        // Strip the "data:image/png;base64," prefix for the attachment
+        const base64Content = qrCode.split(',')[1];
+        const qrBuffer = Buffer.from(base64Content, 'base64');
+
         const { data, error } = await this.resend.emails.send({
           from: this.configService.get('FROM_EMAIL') || 'Base Sports <noreply@baselinelive.com>',
           to: [email],
@@ -54,7 +58,7 @@ export class EmailProcessor extends WorkerHost {
               <div style="text-align: center; margin: 40px 0;">
                 <p style="text-transform: uppercase; font-size: 10px; letter-spacing: 4px; color: #c5a059; margin-bottom: 20px; font-weight: bold;">Digital Entry Pass</p>
                 <div style="background: #ffffff; padding: 15px; display: inline-block; border-radius: 4px;">
-                  <img src="${qrCode}" alt="Ticket QR Code" style="width: 180px; height: 180px;" />
+                  <img src="cid:qrcode" alt="Ticket QR Code" style="width: 180px; height: 180px;" />
                 </div>
                 <p style="font-family: monospace; color: #ffffff; font-size: 18px; margin-top: 20px; letter-spacing: 2px;">${ticketNumber}</p>
                 ${guestNarrative}
@@ -66,6 +70,13 @@ export class EmailProcessor extends WorkerHost {
               </div>
             </div>
           `,
+          attachments: [
+            {
+              filename: 'entry-pass.png',
+              content: qrBuffer,
+              cid: 'qrcode',
+            } as any,
+          ],
         });
 
         if (error) {

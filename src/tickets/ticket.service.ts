@@ -18,11 +18,12 @@ export class TicketService {
   async generateQrCode(ticketNumber: string): Promise<string> {
     try {
       const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://basesports.io';
-      // Create a verification URL instead of plain text so cameras recognize it as a link
       const verificationUrl = `${frontendUrl}/verify?ticket=${ticketNumber}`;
+      
       return await QRCode.toDataURL(verificationUrl, {
-        margin: 1,
+        margin: 2,
         width: 400,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#000000',
           light: '#ffffff',
