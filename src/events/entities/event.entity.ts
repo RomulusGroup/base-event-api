@@ -18,8 +18,8 @@ export class Event {
   @Column({ length: 255 })
   location: string;
 
-  @Column({ length: 500, nullable: true })
-  flyerUrl: string;
+  @Column({ type: 'json', nullable: true })
+  galleryUrls: string[];
 
   @Column({ type: 'int', default: 100 })
   maxCapacity: number;

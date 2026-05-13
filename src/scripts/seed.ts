@@ -49,7 +49,7 @@ async function seed() {
       location: 'Lagos, Nigeria',
       maxCapacity: 200,
       ticketPrefix: 'BASE',
-      flyerUrl: 'https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=2000&auto=format&fit=crop',
+      galleryUrls: ['https://images.unsplash.com/photo-1541252260730-0412e8e2108e?q=80&w=2000&auto=format&fit=crop'],
     });
 
     await eventRepository.save(event);

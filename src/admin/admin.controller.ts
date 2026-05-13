@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFile, UseGuards, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseInterceptors, UploadedFiles, UseGuards, Delete } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { EventsService } from '../events/events.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -28,36 +29,27 @@ export class AdminController {
   }
 
   @Post('events')
-  @UseInterceptors(FileInterceptor('flyer'))
+  @UseInterceptors(AnyFilesInterceptor())
   @ApiOperation({ summary: 'Create a new event' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        title: { type: 'string' },
-        description: { type: 'string' },
-        date: { type: 'string', format: 'date-time' },
-        location: { type: 'string' },
-        maxCapacity: { type: 'integer' },
-        ticketPrefix: { type: 'string' },
-        flyer: { type: 'string', format: 'binary' },
-      },
-    },
-  })
   async createEvent(
     @Body() eventData: any,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    let flyerUrl = eventData.flyerUrl;
+    const galleryUrls: string[] = [];
     
-    if (file) {
-      flyerUrl = await this.storageService.uploadFlyer(file);
+    if (files && files.length > 0) {
+      for (const file of files) {
+        if (file.fieldname === 'gallery') {
+          const url = await this.storageService.uploadFlyer(file);
+          galleryUrls.push(url);
+        }
+      }
     }
     
     return this.eventsService.createEvent({
       ...eventData,
-      flyerUrl,
+      galleryUrls,
       date: new Date(eventData.date),
     });
   }
@@ -69,23 +61,28 @@ export class AdminController {
   }
 
   @Post('events/:id')
-  @UseInterceptors(FileInterceptor('flyer'))
+  @UseInterceptors(AnyFilesInterceptor())
   @ApiOperation({ summary: 'Update an existing event' })
   @ApiConsumes('multipart/form-data')
   async updateEvent(
     @Param('id') id: string,
     @Body() eventData: any,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    let flyerUrl = eventData.flyerUrl;
+    let galleryUrls: string[] = eventData.galleryUrls ? JSON.parse(eventData.galleryUrls) : [];
     
-    if (file) {
-      flyerUrl = await this.storageService.uploadFlyer(file);
+    if (files && files.length > 0) {
+      for (const file of files) {
+        if (file.fieldname === 'gallery') {
+          const url = await this.storageService.uploadFlyer(file);
+          galleryUrls.push(url);
+        }
+      }
     }
     
     return this.eventsService.updateEvent(id, {
       ...eventData,
-      flyerUrl,
+      galleryUrls,
     });
   }
 
