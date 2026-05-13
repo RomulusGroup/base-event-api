@@ -15,6 +15,27 @@ export class TicketService {
   }
 
 
+  async generateQrCodeBuffer(ticketNumber: string): Promise<Buffer> {
+    try {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://basesports.io';
+      const verificationUrl = `${frontendUrl}/verify?ticket=${ticketNumber}`;
+      
+      return await QRCode.toBuffer(verificationUrl, {
+        margin: 2,
+        width: 400,
+        errorCorrectionLevel: 'M',
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        }
+      });
+    } catch (err) {
+      console.error('QR Code generation failed', err);
+      throw new Error('Could not generate QR code');
+    }
+  }
+
+
   async generateQrCode(ticketNumber: string): Promise<string> {
     try {
       const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://basesports.io';

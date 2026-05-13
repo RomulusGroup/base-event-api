@@ -7,6 +7,7 @@ import { CreateRsvpDto } from './dto/create-rsvp.dto';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { TicketService } from '../tickets/ticket.service';
+import { StorageService } from '../events/storage.service';
 
 @Injectable()
 export class RsvpService {
@@ -20,6 +21,7 @@ export class RsvpService {
     @InjectQueue('email-queue')
     private readonly emailQueue: Queue,
     private readonly ticketService: TicketService,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(createRsvpDto: any) {
@@ -39,16 +41,17 @@ export class RsvpService {
     }
 
     const ticketNumber = this.ticketService.generateTicketNumber(event.ticketPrefix);
-    const qrCode = await this.ticketService.generateQrCode(ticketNumber);
+    
+    // Generate both for different purposes
+    const qrCodeBuffer = await this.ticketService.generateQrCodeBuffer(ticketNumber);
+    const qrCodeUrl = await this.storageService.uploadQrCode(qrCodeBuffer, ticketNumber);
+    const qrCodeDataUrl = await this.ticketService.generateQrCode(ticketNumber); // For instant frontend display
 
     // Guest Handling: Default to 1 if bringingPlusOne is true but guestCount not provided
     const guestCount = createRsvpDto.guestCount || (createRsvpDto.bringingPlusOne ? 1 : 0);
     const totalSpots = 1 + guestCount;
 
     // Capacity Check
-    const currentAttendance = await this.attendeeRepository.count({ where: { event: { id: eventId } } });
-    // Note: This is a simple count of attendees, we should actually sum their guestCount if we support multiple guests.
-    // For now, I'll calculate total booked spots by summing (1 + guestCount) for all current attendees.
     const attendees = await this.attendeeRepository.find({ where: { event: { id: eventId } } });
     const totalBooked = attendees.reduce((sum, a) => sum + 1 + (a.guestCount || 0), 0);
 
@@ -70,7 +73,7 @@ export class RsvpService {
     
     const savedAttendee = await this.attendeeRepository.save(attendee);
 
-    // Dispatch asynchronous email job with QR code and guest info
+    // Dispatch asynchronous email job with QR code URL and guest info
     try {
       await this.emailQueue.add(
         'dispatch_rsvp_email',
@@ -82,7 +85,7 @@ export class RsvpService {
           eventTitle: event.title,
           eventDate: event.date,
           eventLocation: event.location,
-          qrCode, 
+          qrCode: qrCodeUrl, // Using Hosted URL now
           bringingPlusOne: savedAttendee.bringingPlusOne,
           guestCount: savedAttendee.guestCount,
           plusOneName: savedAttendee.plusOneName,
@@ -103,7 +106,30 @@ export class RsvpService {
     return { 
       id: savedAttendee.id,
       ticketNumber: savedAttendee.ticketNumber,
-      qrCode,
+      qrCode: qrCodeDataUrl,
+    };
+  }
+
+  async verifyTicket(ticketNumber: string) {
+    const attendee = await this.attendeeRepository.findOne({
+      where: { ticketNumber },
+      relations: ['event'],
+    });
+
+    if (!attendee) {
+      throw new ConflictException('Invalid ticket number.');
+    }
+
+    return {
+      fullName: attendee.fullName,
+      email: attendee.email,
+      ticketNumber: attendee.ticketNumber,
+      guestCount: attendee.guestCount,
+      plusOneName: attendee.plusOneName,
+      checkedIn: attendee.checkedIn,
+      eventTitle: attendee.event.title,
+      eventDate: attendee.event.date,
+      eventLocation: attendee.event.location,
     };
   }
 }

@@ -44,11 +44,38 @@ export class StorageService {
       );
 
       const endpoint = this.configService.get<string>('DO_SPACES_ENDPOINT');
-      // Construct the public URL
-      return `https://${this.bucketName}.${endpoint}/${fileName}`;
+      if (!endpoint) throw new Error('DO_SPACES_ENDPOINT not configured');
+
+      const endpointHost = endpoint.replace('https://', '');
+      return `https://${this.bucketName}.${endpointHost}/${fileName}`;
     } catch (error) {
       console.error('S3 Upload Error:', error);
       throw new Error('Failed to upload file to storage');
+    }
+  }
+
+  async uploadQrCode(buffer: Buffer, ticketNumber: string): Promise<string> {
+    const fileName = `qrcodes/${ticketNumber}.png`;
+
+    try {
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: fileName,
+          Body: buffer,
+          ContentType: 'image/png',
+          ACL: 'public-read',
+        }),
+      );
+
+      const endpoint = this.configService.get<string>('DO_SPACES_ENDPOINT');
+      if (!endpoint) throw new Error('DO_SPACES_ENDPOINT not configured');
+      
+      const endpointHost = endpoint.replace('https://', '');
+      return `https://${this.bucketName}.${endpointHost}/${fileName}`;
+    } catch (error) {
+      console.error('S3 Upload Error:', error);
+      throw new Error('Failed to upload QR code to storage');
     }
   }
 }

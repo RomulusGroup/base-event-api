@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpStatus, HttpCode, Get, Param } from '@nestjs/common';
 import { RsvpService } from './rsvp.service';
 import { CreateRsvpDto } from './dto/create-rsvp.dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -18,5 +18,13 @@ export class RsvpController {
   @ApiResponse({ status: 429, description: 'Too many requests - Rate limited.' })
   async create(@Body() createRsvpDto: CreateRsvpDto) {
     return this.rsvpService.create(createRsvpDto);
+  }
+
+  @Get('verify/:ticketNumber')
+  @ApiOperation({ summary: 'Verify a ticket by its number' })
+  @ApiResponse({ status: 200, description: 'Ticket is valid.' })
+  @ApiResponse({ status: 404, description: 'Ticket not found or invalid.' })
+  async verify(@Param('ticketNumber') ticketNumber: string) {
+    return this.rsvpService.verifyTicket(ticketNumber);
   }
 }
