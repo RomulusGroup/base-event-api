@@ -23,28 +23,38 @@ export class EmailProcessor extends WorkerHost {
 
       try {
         const { data, error } = await this.resend.emails.send({
-          from: 'Base Sports <rsvp@basesports.io>',
+          from: this.configService.get('FROM_EMAIL') || 'Base Sports <noreply@baselinelive.com>',
           to: [email],
-          subject: `Your Ticket for ${eventTitle} - Base Sports`,
+          subject: `Your Exclusive Entry Pass for ${eventTitle}`,
           html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-              <h1 style="color: #ea580c; text-transform: uppercase;">Ticket Confirmed!</h1>
-              <p>Hello <strong>${fullName}</strong>,</p>
-              <p>Your registration for <strong>${eventTitle}</strong> is successful.</p>
+            <div style="font-family: 'Playfair Display', serif, sans-serif; max-width: 600px; margin: auto; background-color: #0d0d0b; color: #ffffff; padding: 40px; border: 1px solid #c5a05933;">
+              <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="color: #c5a059; font-style: italic; font-weight: 400; font-size: 32px; letter-spacing: 2px;">Invitation Confirmed</h1>
+                <div style="height: 1px; background: linear-gradient(to right, transparent, #c5a059, transparent); width: 150px; margin: 20px auto;"></div>
+              </div>
               
-              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #ea580c;">
-                <p style="margin: 0; font-weight: bold; font-size: 1.2rem;">${eventTitle}</p>
-                <p style="margin: 5px 0; color: #666;">${new Date(eventDate).toLocaleDateString()} at ${new Date(eventDate).toLocaleTimeString()}</p>
-                <p style="margin: 5px 0; color: #666;">${eventLocation}</p>
+              <p style="font-size: 16px; line-height: 1.6; color: #a1a19a;">Hello <strong>${fullName}</strong>,</p>
+              <p style="font-size: 16px; line-height: 1.6; color: #a1a19a;">Your presence is confirmed for <strong>${eventTitle}</strong>. We look forward to welcoming you to this exclusive experience.</p>
+              
+              <div style="background: rgba(255,255,255,0.05); padding: 30px; border: 1px solid rgba(197,160,89,0.2); margin: 30px 0;">
+                <p style="margin: 0; font-size: 20px; color: #ffffff; font-style: italic;">${eventTitle}</p>
+                <p style="margin: 10px 0 0 0; color: #c5a059; text-transform: uppercase; font-size: 11px; letter-spacing: 3px;">
+                  ${new Date(eventDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })} — ${eventLocation}
+                </p>
               </div>
 
-              <div style="text-align: center; margin: 30px 0;">
-                <p style="font-weight: bold; margin-bottom: 10px;">Ticket Number: <span style="color: #ea580c;">${ticketNumber}</span></p>
-                <img src="${qrCode}" alt="Ticket QR Code" style="width: 200px; height: 200px; border: 5px solid #000; border-radius: 10px;" />
-                <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">Please present this QR code at the entrance.</p>
+              <div style="text-align: center; margin: 40px 0;">
+                <p style="text-transform: uppercase; font-size: 10px; letter-spacing: 4px; color: #c5a059; margin-bottom: 20px; font-weight: bold;">Digital Entry Pass</p>
+                <div style="background: #ffffff; padding: 15px; display: inline-block; border-radius: 4px;">
+                  <img src="${qrCode}" alt="Ticket QR Code" style="width: 180px; height: 180px;" />
+                </div>
+                <p style="font-family: monospace; color: #ffffff; font-size: 18px; margin-top: 20px; letter-spacing: 2px;">${ticketNumber}</p>
+                <p style="font-size: 11px; color: #a1a19a; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;">Valid for one admission</p>
               </div>
 
-              <p>Best regards,<br/>Base Sports Team</p>
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; text-align: center;">
+                <p style="font-size: 12px; color: #a1a19a; letter-spacing: 1px;">Base Sports & Entertainment</p>
+              </div>
             </div>
           `,
         });
