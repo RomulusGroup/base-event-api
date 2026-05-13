@@ -122,7 +122,16 @@ export class RsvpService {
       throw new ConflictException('Invalid ticket number. This pass was not found in our registry.');
     }
 
-    this.logger.log(`Ticket verified successfully: ${cleanTicketNumber} for ${attendee.fullName}`);
+    const wasAlreadyCheckedIn = attendee.checkedIn;
+
+
+    if (!wasAlreadyCheckedIn) {
+      attendee.checkedIn = true;
+      await this.attendeeRepository.save(attendee);
+      this.logger.log(`Ticket verified and checked in: ${cleanTicketNumber} for ${attendee.fullName}`);
+    } else {
+      this.logger.warn(`Duplicate scan detected for ticket: ${cleanTicketNumber} (${attendee.fullName})`);
+    }
 
     return {
       fullName: attendee.fullName,
@@ -131,6 +140,7 @@ export class RsvpService {
       guestCount: attendee.guestCount,
       plusOneName: attendee.plusOneName,
       checkedIn: attendee.checkedIn,
+      alreadyCheckedIn: wasAlreadyCheckedIn,
       eventTitle: attendee.event.title,
       eventDate: attendee.event.date,
       eventLocation: attendee.event.location,
