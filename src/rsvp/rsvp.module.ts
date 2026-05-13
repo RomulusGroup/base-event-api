@@ -5,6 +5,8 @@ import { RsvpService } from './rsvp.service';
 import { RsvpController } from './rsvp.controller';
 import { Attendee } from './entities/attendee.entity';
 import { EmailProcessor } from './processors/email.processor';
+import { EventsModule } from '../events/events.module';
+import { TicketService } from '../tickets/ticket.service';
 
 @Module({
   imports: [
@@ -12,8 +14,9 @@ import { EmailProcessor } from './processors/email.processor';
     BullModule.registerQueue({
       name: 'email-queue',
     }),
+    EventsModule,
   ],
   controllers: [RsvpController],
-  providers: [RsvpService, EmailProcessor],
+  providers: [RsvpService, EmailProcessor, TicketService],
 })
 export class RsvpModule {}

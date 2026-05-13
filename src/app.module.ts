@@ -4,7 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RsvpModule } from './rsvp/rsvp.module';
+import { EventsModule } from './events/events.module';
+import { AuthModule } from './auth/auth.module';
 import { Attendee } from './rsvp/entities/attendee.entity';
+import { Event } from './events/entities/event.entity';
+import { User } from './auth/entities/user.entity';
 
 @Module({
   imports: [
@@ -21,8 +25,8 @@ import { Attendee } from './rsvp/entities/attendee.entity';
         username: configService.get<string>('DB_USERNAME', 'root'),
         password: configService.get<string>('DB_PASSWORD', ''),
         database: configService.get<string>('DB_DATABASE', 'base_sports'),
-        entities: [Attendee],
-        synchronize: true, // Only for development; use migrations in production
+        entities: [Attendee, Event, User],
+        synchronize: false,
       }),
     }),
     BullModule.forRootAsync({
@@ -37,9 +41,11 @@ import { Attendee } from './rsvp/entities/attendee.entity';
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 5,
+      limit: 10, 
     }]),
     RsvpModule,
+    EventsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

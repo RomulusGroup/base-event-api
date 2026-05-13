@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { Event } from '../../events/entities/event.entity';
 
 @Entity('attendees')
 export class Attendee {
@@ -22,6 +23,15 @@ export class Attendee {
 
   @Column({ length: 255, nullable: true })
   plusOneName: string;
+
+  @Column({ unique: true, length: 100, nullable: true })
+  ticketNumber: string;
+
+  @Column({ type: 'boolean', default: false })
+  checkedIn: boolean;
+
+  @ManyToOne(() => Event, (event) => event.attendees)
+  event: Event;
 
   @CreateDateColumn()
   createdAt: Date;

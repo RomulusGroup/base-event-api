@@ -17,7 +17,7 @@ export class EmailProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     if (job.name === 'dispatch_rsvp_email') {
-      const { fullName, email } = job.data;
+      const { fullName, email, ticketNumber, eventTitle, eventDate, eventLocation, qrCode } = job.data;
       
       this.logger.log(`Processing rsvp email for ${email}`);
 
@@ -25,14 +25,27 @@ export class EmailProcessor extends WorkerHost {
         const { data, error } = await this.resend.emails.send({
           from: 'Base Sports <rsvp@basesports.io>',
           to: [email],
-          subject: 'RSVP Confirmation - Base Sports Event',
+          subject: `Your Ticket for ${eventTitle} - Base Sports`,
           html: `
-            <h1>Hello ${fullName},</h1>
-            <p>Thank you for your RSVP to the Base Sports event! We have successfully received your details.</p>
-            <p>If you're bringing a plus one, they're included in our list.</p>
-            <p>See you there!</p>
-            <br/>
-            <p>Best regards,<br/>Base Sports Team</p>
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+              <h1 style="color: #ea580c; text-transform: uppercase;">Ticket Confirmed!</h1>
+              <p>Hello <strong>${fullName}</strong>,</p>
+              <p>Your registration for <strong>${eventTitle}</strong> is successful.</p>
+              
+              <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 5px solid #ea580c;">
+                <p style="margin: 0; font-weight: bold; font-size: 1.2rem;">${eventTitle}</p>
+                <p style="margin: 5px 0; color: #666;">${new Date(eventDate).toLocaleDateString()} at ${new Date(eventDate).toLocaleTimeString()}</p>
+                <p style="margin: 5px 0; color: #666;">${eventLocation}</p>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <p style="font-weight: bold; margin-bottom: 10px;">Ticket Number: <span style="color: #ea580c;">${ticketNumber}</span></p>
+                <img src="${qrCode}" alt="Ticket QR Code" style="width: 200px; height: 200px; border: 5px solid #000; border-radius: 10px;" />
+                <p style="font-size: 0.8rem; color: #888; margin-top: 10px;">Please present this QR code at the entrance.</p>
+              </div>
+
+              <p>Best regards,<br/>Base Sports Team</p>
+            </div>
           `,
         });
 
