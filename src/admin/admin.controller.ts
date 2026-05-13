@@ -36,6 +36,7 @@ export class AdminController {
     @Body() eventData: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    const { title, description, date, location, maxCapacity, ticketPrefix, category, isFeatured } = eventData;
     const galleryUrls: string[] = [];
     
     if (files && files.length > 0) {
@@ -48,10 +49,15 @@ export class AdminController {
     }
     
     return this.eventsService.createEvent({
-      ...eventData,
+      title,
+      description,
+      location,
+      maxCapacity: parseInt(maxCapacity, 10),
+      ticketPrefix,
+      category,
+      isFeatured: isFeatured === 'true' || isFeatured === true,
       galleryUrls,
-      isFeatured: eventData.isFeatured === 'true' || eventData.isFeatured === true,
-      date: new Date(eventData.date),
+      date: new Date(date),
     });
   }
 
@@ -70,6 +76,7 @@ export class AdminController {
     @Body() eventData: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    const { title, description, date, location, maxCapacity, ticketPrefix, category, isFeatured } = eventData;
     let galleryUrls: string[] = eventData.galleryUrls ? JSON.parse(eventData.galleryUrls) : [];
     
     if (files && files.length > 0) {
@@ -82,9 +89,15 @@ export class AdminController {
     }
     
     return this.eventsService.updateEvent(id, {
-      ...eventData,
+      title,
+      description,
+      date,
+      location,
+      maxCapacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
+      ticketPrefix,
+      category,
+      isFeatured: isFeatured === 'true' || isFeatured === true,
       galleryUrls,
-      isFeatured: eventData.isFeatured === 'true' || eventData.isFeatured === true,
     });
   }
 
