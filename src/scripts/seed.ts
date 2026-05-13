@@ -27,13 +27,13 @@ async function seed() {
   // Seed Admin User
   const existingUser = await userRepository.findOne({ where: { email: 'admin@baselinelive.com' } });
   if (!existingUser) {
-    const hashedPassword = await bcrypt.hash('BaseLineLive2024!', 10);
+    const hashedPassword = await bcrypt.hash('BaseLineLive2026!', 10);
     const user = userRepository.create({
       email: 'admin@baselinelive.com',
       password: hashedPassword,
     });
     await userRepository.save(user);
-    console.log('Seeding completed: Created admin user (admin@baselinelive.com / BaseLineLive2024!)');
+  
   } else {
     console.log('Seeding skipped: Admin user already exists.');
   }
