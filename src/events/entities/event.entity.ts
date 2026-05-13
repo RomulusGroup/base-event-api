@@ -24,6 +24,12 @@ export class Event {
   @Column({ type: 'int', default: 100 })
   maxCapacity: number;
 
+  @Column({ length: 50, default: 'general' })
+  category: string;
+
+  @Column({ default: false })
+  isFeatured: boolean;
+
   @Column({ length: 10, default: 'BASE' })
   ticketPrefix: string;
 

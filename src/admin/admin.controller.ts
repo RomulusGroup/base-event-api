@@ -50,6 +50,7 @@ export class AdminController {
     return this.eventsService.createEvent({
       ...eventData,
       galleryUrls,
+      isFeatured: eventData.isFeatured === 'true' || eventData.isFeatured === true,
       date: new Date(eventData.date),
     });
   }
@@ -83,6 +84,7 @@ export class AdminController {
     return this.eventsService.updateEvent(id, {
       ...eventData,
       galleryUrls,
+      isFeatured: eventData.isFeatured === 'true' || eventData.isFeatured === true,
     });
   }
 
