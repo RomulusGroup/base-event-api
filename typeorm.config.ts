@@ -15,5 +15,5 @@ export default new DataSource({
   database: process.env.DB_DATABASE || 'base_sports',
   entities: [Attendee, Event, User],
   migrations: ['./src/migrations/*.ts'],
-  synchronize: false,
+ synchronize: true,
 });
