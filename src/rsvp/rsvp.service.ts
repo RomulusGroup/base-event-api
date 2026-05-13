@@ -41,12 +41,28 @@ export class RsvpService {
     const ticketNumber = this.ticketService.generateTicketNumber(event.ticketPrefix);
     const qrCode = await this.ticketService.generateQrCode(ticketNumber);
 
+    // Guest Handling: Default to 1 if bringingPlusOne is true but guestCount not provided
+    const guestCount = createRsvpDto.guestCount || (createRsvpDto.bringingPlusOne ? 1 : 0);
+    const totalSpots = 1 + guestCount;
+
+    // Capacity Check
+    const currentAttendance = await this.attendeeRepository.count({ where: { event: { id: eventId } } });
+    // Note: This is a simple count of attendees, we should actually sum their guestCount if we support multiple guests.
+    // For now, I'll calculate total booked spots by summing (1 + guestCount) for all current attendees.
+    const attendees = await this.attendeeRepository.find({ where: { event: { id: eventId } } });
+    const totalBooked = attendees.reduce((sum, a) => sum + 1 + (a.guestCount || 0), 0);
+
+    if (totalBooked + totalSpots > event.maxCapacity) {
+      throw new ConflictException(`Apologies, this event has reached capacity. (Remaining spots: ${event.maxCapacity - totalBooked})`);
+    }
+
     const attendee = this.attendeeRepository.create({
       fullName: createRsvpDto.fullName,
       email: createRsvpDto.email,
       phoneNumber: createRsvpDto.phoneNumber,
       isAttending: createRsvpDto.isAttending,
       bringingPlusOne: createRsvpDto.bringingPlusOne,
+      guestCount,
       plusOneName: createRsvpDto.plusOneName,
       event,
       ticketNumber,
@@ -54,7 +70,7 @@ export class RsvpService {
     
     const savedAttendee = await this.attendeeRepository.save(attendee);
 
-    // Dispatch asynchronous email job with QR code
+    // Dispatch asynchronous email job with QR code and guest info
     try {
       await this.emailQueue.add(
         'dispatch_rsvp_email',
@@ -66,7 +82,10 @@ export class RsvpService {
           eventTitle: event.title,
           eventDate: event.date,
           eventLocation: event.location,
-          qrCode, // Base64 QR code
+          qrCode, 
+          bringingPlusOne: savedAttendee.bringingPlusOne,
+          guestCount: savedAttendee.guestCount,
+          plusOneName: savedAttendee.plusOneName,
         },
         {
           attempts: 3,

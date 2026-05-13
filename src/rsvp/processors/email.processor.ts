@@ -17,11 +17,19 @@ export class EmailProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     if (job.name === 'dispatch_rsvp_email') {
-      const { fullName, email, ticketNumber, eventTitle, eventDate, eventLocation, qrCode } = job.data;
+      const { fullName, email, ticketNumber, eventTitle, eventDate, eventLocation, qrCode, bringingPlusOne, guestCount, plusOneName } = job.data;
       
       this.logger.log(`Processing rsvp email for ${email}`);
 
       try {
+        // Prepare guest narrative
+        let guestNarrative = '';
+        if (bringingPlusOne) {
+          guestNarrative = `<p style="font-size: 14px; color: #c5a059; margin-top: 5px; font-style: italic;">+ Access for ${plusOneName || 'Guest'}</p>`;
+        } else if (guestCount > 0) {
+          guestNarrative = `<p style="font-size: 14px; color: #c5a059; margin-top: 5px; font-style: italic;">+ Access for ${guestCount} Guest${guestCount > 1 ? 's' : ''}</p>`;
+        }
+
         const { data, error } = await this.resend.emails.send({
           from: this.configService.get('FROM_EMAIL') || 'Base Sports <noreply@baselinelive.com>',
           to: [email],
@@ -49,7 +57,8 @@ export class EmailProcessor extends WorkerHost {
                   <img src="${qrCode}" alt="Ticket QR Code" style="width: 180px; height: 180px;" />
                 </div>
                 <p style="font-family: monospace; color: #ffffff; font-size: 18px; margin-top: 20px; letter-spacing: 2px;">${ticketNumber}</p>
-                <p style="font-size: 11px; color: #a1a19a; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;">Valid for one admission</p>
+                ${guestNarrative}
+                <p style="font-size: 11px; color: #a1a19a; margin-top: 10px; text-transform: uppercase; letter-spacing: 2px;">Valid for admission</p>
               </div>
 
               <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 30px; text-align: center;">

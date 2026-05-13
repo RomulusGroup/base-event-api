@@ -21,6 +21,9 @@ export class Attendee {
   @Column({ type: 'boolean', default: false })
   bringingPlusOne: boolean;
 
+  @Column({ type: 'int', default: 0 })
+  guestCount: number;
+
   @Column({ length: 255, nullable: true })
   plusOneName: string;
 
