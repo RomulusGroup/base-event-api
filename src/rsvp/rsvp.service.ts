@@ -111,14 +111,18 @@ export class RsvpService {
   }
 
   async verifyTicket(ticketNumber: string) {
+    const cleanTicketNumber = ticketNumber.trim();
     const attendee = await this.attendeeRepository.findOne({
-      where: { ticketNumber },
+      where: { ticketNumber: cleanTicketNumber },
       relations: ['event'],
     });
 
     if (!attendee) {
-      throw new ConflictException('Invalid ticket number.');
+      this.logger.warn(`Verification failed for ticket: ${cleanTicketNumber}`);
+      throw new ConflictException('Invalid ticket number. This pass was not found in our registry.');
     }
+
+    this.logger.log(`Ticket verified successfully: ${cleanTicketNumber} for ${attendee.fullName}`);
 
     return {
       fullName: attendee.fullName,
